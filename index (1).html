@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nectar Launch Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  /* Department Colors */
+  --dept-creative: #8B5CF6;
+  --dept-rd: #0D9488;
+  --dept-finance: #1E3A5F;
+  --dept-production: #EA580C;
+  --dept-photography: #EC4899;
+  --dept-marketing: #16A34A;
+  --dept-wholesale: #CA8A04;
+  --dept-online: #2563EB;
+  --dept-retail: #DC2626;
+
+  /* Status Colors */
+  --status-on-track: #22C55E;
+  --status-at-risk: #F59E0B;
+  --status-delayed: #EF4444;
+  --status-complete: #6B7280;
+  --status-not-started: #D1D5DB;
+
+  /* UI Colors */
+  --bg-primary: #0F1117;
+  --bg-secondary: #1A1D27;
+  --bg-card: #1E2130;
+  --bg-hover: #252838;
+  --border: #2A2D3A;
+  --text-primary: #F1F3F8;
+  --text-secondary: #8B8FA3;
+  --text-muted: #5C6070;
+  --accent: #8B5CF6;
+  --accent-soft: rgba(139, 92, 246, 0.15);
+
+  /* Sizing */
+  --sidebar-width: 240px;
+  --header-height: 60px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============ AUTH SCREEN ============ */
+.auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1040 50%, var(--bg-primary) 100%);
+}
+
+.auth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 380px;
+  text-align: center;
+}
+
+.auth-card .logo {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--accent), #EC4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.auth-card .subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  margin-bottom: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-card input:focus {
+  border-color: var(--accent);
+}
+
+.auth-card button {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.auth-card button:hover { opacity: 0.9; }
+
+.auth-error {
+  color: var(--status-delayed);
+  font-size: 13px;
+  margin-top: 12px;
+  display: none;
+}
+
+/* ============ APP LAYOUT ============ */
+.app { display: none; }
+.app.active { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s;
+}
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #EC4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-logo span {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  padding: 16px 12px 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-logout:hover {
+  border-color: var(--status-delayed);
+  color: var(--status-delayed);
+}
+
+/* Main Content */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-height: 100vh;
+}
+
+.page-header {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 50;
+}
+
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.btn-icon {
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.page-body {
+  padding: 24px 32px;
+}
+
+/* ============ VIEW CONTAINERS ============ */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ============ DASHBOARD ============ */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.stat-card .stat-value {
+  font-family: 'Fraunces', serif;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.stat-card .stat-value.on-track { color: var(--status-on-track); }
+.stat-card .stat-value.at-risk { color: var(--status-at-risk); }
+.stat-card .stat-value.delayed { color: var(--status-delayed); }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+}
+
+/* This Week Panel */
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.panel-body {
+  padding: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Collection Cards */
+.collection-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.collection-card:hover {
+  border-color: var(--text-muted);
+  background: var(--bg-hover);
+}
+
+.collection-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.collection-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.collection-type {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.type-seasonal { background: rgba(37, 99, 235, 0.15); color: #60A5FA; }
+.type-holiday { background: rgba(236, 72, 153, 0.15); color: #F472B6; }
+.type-event { background: rgba(234, 88, 12, 0.15); color: #FB923C; }
+
+.collection-dates {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.collection-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 32px;
+  text-align: right;
+}
+
+.collection-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.badge-on-track { background: rgba(34, 197, 94, 0.15); color: var(--status-on-track); }
+.badge-at-risk { background: rgba(245, 158, 11, 0.15); color: var(--status-at-risk); }
+.badge-delayed { background: rgba(239, 68, 68, 0.15); color: var(--status-delayed); }
+.badge-complete { background: rgba(107, 114, 128, 0.15); color: var(--status-complete); }
+.badge-not-started { background: rgba(209, 213, 219, 0.1); color: var(--text-muted); }
+
+.deadline-countdown {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.deadline-countdown.urgent { color: var(--status-delayed); font-weight: 600; }
+.deadline-countdown.soon { color: var(--status-at-risk); font-weight: 600; }
+
+/* This Week Items */
+.this-week-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: background 0.15s;
+}
+
+.this-week-item:hover { background: var(--bg-hover); }
+
+.dept-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.this-week-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.this-week-milestone {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.this-week-collection {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.this-week-date {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.overdue-text { color: var(--status-delayed); }
+.today-text { color: var(--status-at-risk); }
+
+/* Status Filter Toggle */
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+/* ============ COLLECTION DETAIL ============ */
+.detail-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.detail-back:hover { color: var(--text-primary); }
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.detail-title-group h2 {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.milestone-item {
+  display: grid;
+  grid-template-columns: 12px 1fr 140px 140px 100px 40px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.15s;
+}
+
+.milestone-item:hover {
+  border-color: var(--text-muted);
+}
+
+.milestone-dept-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+}
+
+.milestone-info {
+  min-width: 0;
+}
+
+.milestone-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.milestone-dept {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.milestone-target-date, .milestone-actual-date {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.milestone-actual-date input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 120px;
+}
+
+.milestone-status-select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.milestone-notes-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.milestone-notes-btn:hover { color: var(--accent); }
+.milestone-notes-btn.has-notes { color: var(--accent); }
+
+/* Notes Panel */
+.notes-panel {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  z-index: 200;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-panel.open { right: 0; }
+
+.notes-panel-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notes-panel-header h3 { font-size: 15px; }
+
+.notes-panel-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.notes-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.note-item {
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.note-item .note-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.note-item .note-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notes-input-area {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+
+.notes-input-area textarea {
+  flex: 1;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 10px;
+  resize: none;
+  height: 60px;
+  outline: none;
+}
+
+.notes-input-area textarea:focus { border-color: var(--accent); }
+
+.notes-input-area button {
+  align-self: flex-end;
+  padding: 8px 16px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 190;
+  display: none;
+}
+
+.overlay.visible { display: block; }
+
+/* ============ TIMELINE VIEW ============ */
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.timeline-toggle {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.timeline-toggle button {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.timeline-toggle button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.timeline-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.timeline-header-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 10;
+}
+
+.timeline-label-col {
+  min-width: 200px;
+  max-width: 200px;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.timeline-months {
+  display: flex;
+  flex: 1;
+}
+
+.timeline-month {
+  min-width: 120px;
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border);
+}
+
+.timeline-body {
+  position: relative;
+}
+
+.timeline-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  min-height: 48px;
+  align-items: center;
+}
+
+.timeline-row:last-child { border-bottom: none; }
+
+.timeline-row-label {
+  min-width: 200px;
+  max-width: 200px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-row-bars {
+  flex: 1;
+  position: relative;
+  height: 48px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-bar {
+  position: absolute;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  min-width: 8px;
+}
+
+.timeline-bar:hover { opacity: 0.85; }
+
+.timeline-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--status-delayed);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.timeline-today-label {
+  position: absolute;
+  top: -20px;
+  font-size: 10px;
+  color: var(--status-delayed);
+  font-weight: 600;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* Milestone dots on timeline */
+.timeline-milestone-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  cursor: pointer;
+  z-index: 6;
+  transition: transform 0.15s;
+}
+
+.timeline-milestone-dot:hover {
+  transform: scale(1.4);
+}
+
+/* ============ KANBAN VIEW ============ */
+.kanban-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  min-height: 400px;
+}
+
+.kanban-column {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.kanban-column-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-column-title {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kanban-count {
+  font-size: 11px;
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+.kanban-column-body {
+  padding: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.kanban-card {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid;
+}
+
+.kanban-card:hover {
+  background: var(--bg-hover);
+}
+
+.kanban-card-milestone {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.kanban-card-collection {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.kanban-card-date {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* ============ ADD/EDIT MODAL ============ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop.visible { display: flex; }
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.modal-body { padding: 24px; }
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus, .form-group select:focus {
+  border-color: var(--accent);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.milestone-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.milestone-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.milestone-toggle-row input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.milestone-toggle-row input[type="date"] {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  padding: 4px 8px;
+  margin-left: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ============ EXPORT SNAPSHOT ============ */
+.export-content {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ============ DEPARTMENT LEGEND ============ */
+.dept-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dept-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dept-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ============ EMPTY STATE ============ */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* ============ LOADING ============ */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============ TOOLTIP ============ */
+.tooltip {
+  position: fixed;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  z-index: 500;
+  pointer-events: none;
+  max-width: 250px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  display: none;
+}
+
+.tooltip.visible { display: block; }
+
+.tooltip-title { font-weight: 600; margin-bottom: 4px; }
+.tooltip-detail { color: var(--text-secondary); }
+
+/* ============ RESPONSIVE ============ */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .mobile-menu-btn { display: block; }
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .kanban-container { grid-template-columns: 1fr; }
+  .milestone-item {
+    grid-template-columns: 12px 1fr;
+    gap: 8px;
+  }
+  .milestone-target-date, .milestone-actual-date, .milestone-status-select, .milestone-notes-btn {
+    grid-column: 2;
+  }
+  .modal { width: 95vw; }
+  .page-body { padding: 16px; }
+  .page-header { padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="logo">Nectar Launch Hub</div>
+    <div class="subtitle">Product Development Tracker</div>
+    <input type="password" id="authPassword" placeholder="Enter team password" onkeypress="if(event.key==='Enter')attemptLogin()">
+    <button onclick="attemptLogin()">Enter</button>
+    <div class="auth-error" id="authError">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h1>Nectar Launch Hub</h1>
+      <span>Product Development</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-view="dashboard" onclick="navigateTo('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-section-label">Views</div>
+      <div class="nav-item" data-view="timeline" onclick="navigateTo('timeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Timeline
+      </div>
+      <div class="nav-item" data-view="kanban" onclick="navigateTo('kanban')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+        Board
+      </div>
+      <div class="nav-section-label">Collections</div>
+      <div id="sidebarCollections"></div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-header">
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+      <h2 class="page-title" id="pageTitle">Dashboard</h2>
+      <div class="page-actions">
+        <label class="filter-toggle" id="filterToggle" style="display:none;">
+          <input type="checkbox" id="filterAtRisk" onchange="applyFilters()"> Show only at risk / delayed
+        </label>
+        <button class="btn btn-secondary btn-sm" onclick="openExportModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Collection
+        </button>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Dashboard View -->
+      <div class="view active" id="view-dashboard">
+        <div class="dashboard-stats" id="dashboardStats"></div>
+        <div class="dashboard-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>All Collections</h3>
+            </div>
+            <div class="panel-body" id="collectionsList"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>🔥 This Week</h3>
+            </div>
+            <div class="panel-body" id="thisWeekList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collection Detail View -->
+      <div class="view" id="view-detail">
+        <button class="detail-back" onclick="navigateTo('dashboard')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to Dashboard
+        </button>
+        <div class="detail-header" id="detailHeader"></div>
+        <div class="milestone-list" id="milestoneList"></div>
+      </div>
+
+      <!-- Timeline View -->
+      <div class="view" id="view-timeline">
+        <div class="timeline-controls">
+          <div class="timeline-toggle">
+            <button class="active" onclick="setTimelineMode('collection', this)">By Collection</button>
+            <button onclick="setTimelineMode('department', this)">By Department</button>
+          </div>
+          <div class="dept-legend" id="deptLegend"></div>
+        </div>
+        <div class="timeline-container" id="timelineContainer"></div>
+      </div>
+
+      <!-- Kanban View -->
+      <div class="view" id="view-kanban">
+        <div class="dept-legend" id="kanbanLegend"></div>
+        <div class="kanban-container" id="kanbanContainer"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes Panel -->
+<div class="overlay" id="notesOverlay" onclick="closeNotesPanel()"></div>
+<div class="notes-panel" id="notesPanel">
+  <div class="notes-panel-header">
+    <h3 id="notesPanelTitle">Notes</h3>
+    <button class="notes-panel-close" onclick="closeNotesPanel()">✕</button>
+  </div>
+  <div class="notes-list" id="notesList"></div>
+  <div class="notes-input-area">
+    <textarea id="noteInput" placeholder="Add a note..."></textarea>
+    <button onclick="addNote()">Post</button>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-backdrop" id="collectionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">New Collection</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editCollectionId">
+      <div class="form-group">
+        <label>Collection Name</label>
+        <input type="text" id="collectionNameInput" placeholder="e.g. Summer Collection">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="collectionTypeInput">
+            <option value="seasonal">Seasonal</option>
+            <option value="holiday">Holiday</option>
+            <option value="event">Event</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input type="number" id="collectionYearInput" value="2026">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Online Launch Date</label>
+          <input type="date" id="onlineLaunchInput">
+        </div>
+        <div class="form-group">
+          <label>Retail Launch Date</label>
+          <input type="date" id="retailLaunchInput">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Milestones (uncheck to skip, adjust dates as needed)</label>
+        <div class="milestone-toggles" id="milestoneToggles"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCollection()">Save Collection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Status Snapshot</h3>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="export-content" id="exportContent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
+      <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tooltipTitle"></div>
+  <div class="tooltip-detail" id="tooltipDetail"></div>
+</div>
+
+<script>
+// ============ FIREBASE SETUP (with fallback for preview) ============
+var db = null;
+var useLocalMode = false;
+
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyD9DD1oHL1dHoi47yJZCC9bWGZ08m4KC-0",
+      authDomain: "nectar-launch-hub.firebaseapp.com",
+      databaseURL: "https://nectar-launch-hub-default-rtdb.firebaseio.com",
+      projectId: "nectar-launch-hub",
+      storageBucket: "nectar-launch-hub.firebasestorage.app",
+      messagingSenderId: "422214861293",
+      appId: "1:422214861293:web:e2220508174bbdea2ba7e4"
+    });
+    db = firebase.database();
+  } else {
+    useLocalMode = true;
+  }
+} catch(e) {
+  useLocalMode = true;
+}
+
+// Local storage fallback for preview/demo
+var localData = {};
+
+var dbHelper = {
+  ref: function(path) {
+    return {
+      on: function(event, cb) {
+        if (useLocalMode) {
+          setTimeout(function() { cb({ val: function() { return getNestedVal(localData, path); } }); }, 100);
+        } else {
+          db.ref(path).on(event, cb);
+        }
+      },
+      once: function(event, cb) {
+        if (useLocalMode) {
+          setTimeout(function() { cb({ val: function() { return getNestedVal(localData, path); } }); }, 100);
+        } else {
+          db.ref(path).once(event, cb);
+        }
+      },
+      set: function(val) {
+        if (useLocalMode) {
+          setNestedVal(localData, path, val);
+          collections = localData.collections || {};
+          renderCurrentView();
+          renderSidebarCollections();
+        } else {
+          db.ref(path).set(val);
+        }
+      },
+      update: function(val) {
+        if (useLocalMode) {
+          var current = getNestedVal(localData, path) || {};
+          Object.keys(val).forEach(function(k) { current[k] = val[k]; });
+          setNestedVal(localData, path, current);
+          collections = localData.collections || {};
+          renderCurrentView();
+          renderSidebarCollections();
+        } else {
+          db.ref(path).update(val);
+        }
+      },
+      push: function() {
+        var newKey = 'note_' + Date.now();
+        var childPath = path + '/' + newKey;
+        return {
+          set: function(val) {
+            if (useLocalMode) {
+              setNestedVal(localData, childPath, val);
+              collections = localData.collections || {};
+              renderCurrentView();
+            } else {
+              db.ref(childPath).set(val);
+            }
+          }
+        };
+      }
+    };
+  }
+};
+
+function getNestedVal(obj, path) {
+  var parts = path.split('/');
+  var current = obj;
+  for (var i = 0; i < parts.length; i++) {
+    if (current === null || current === undefined) return null;
+    current = current[parts[i]];
+  }
+  return current || null;
+}
+
+function setNestedVal(obj, path, val) {
+  var parts = path.split('/');
+  var current = obj;
+  for (var i = 0; i < parts.length - 1; i++) {
+    if (!current[parts[i]]) current[parts[i]] = {};
+    current = current[parts[i]];
+  }
+  current[parts[parts.length - 1]] = val;
+}
+
+// ============ CONSTANTS ============
+var TEAM_PASSWORD = 'nectar2026';
+
+var DEPARTMENTS = {
+  creative: { name: 'Creative / Design', color: '#8B5CF6' },
+  rd: { name: 'R&D / Formulation', color: '#0D9488' },
+  finance: { name: 'Finance / Costing', color: '#1E3A5F' },
+  production: { name: 'Production / Operations', color: '#EA580C' },
+  photography: { name: 'Photography', color: '#EC4899' },
+  marketing: { name: 'Marketing / Content / Social', color: '#16A34A' },
+  wholesale: { name: 'Wholesale', color: '#CA8A04' },
+  online: { name: 'Online', color: '#2563EB' },
+  retail: { name: 'Retail', color: '#DC2626' }
+};
+
+var MILESTONE_TEMPLATE = [
+  { key: 'creative_brief', name: 'Creative Brief Deadline', dept: 'creative', offset: -56 },
+  { key: 'rd_deadline', name: 'R&D Deadline', dept: 'rd', offset: -40 },
+  { key: 'cost_sheet', name: 'Cost Sheet Deadline', dept: 'finance', offset: -35 },
+  { key: 'sample_labels', name: 'Order Sample Labels', dept: 'production', offset: -30 },
+  { key: 'ship_photo_samples', name: 'Ship Photography Samples', dept: 'photography', offset: -25 },
+  { key: 'rm_label_order', name: 'RM & Label Order Deadline', dept: 'production', offset: -20 },
+  { key: 'production_start', name: 'Production Start', dept: 'production', offset: -15 },
+  { key: 'wholesale_catalog', name: 'Wholesale Catalog / Pre-orders', dept: 'wholesale', offset: -10 },
+  { key: 'photo_social_deadline', name: 'Photography & Social Media Deadline', dept: 'photography', offset: -10 },
+  { key: 'copy_assets', name: 'Copy / Assets / Signs Deadline', dept: 'marketing', offset: -5 },
+  { key: 'online_launch', name: 'Online Launch Date', dept: 'online', offset: 0 },
+  { key: 'retail_launch', name: 'Retail Launch Date', dept: 'retail', offset: 5 }
+];
+
+// ============ STATE ============
+var collections = {};
+var currentView = 'dashboard';
+var currentDetailId = null;
+var currentNotesContext = null;
+var timelineMode = 'collection';
+
+// ============ AUTH ============
+function attemptLogin() {
+  const pw = document.getElementById('authPassword').value;
+  if (pw === TEAM_PASSWORD) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    sessionStorage.setItem('nlh_auth', 'true');
+    initApp();
+  } else {
+    document.getElementById('authError').style.display = 'block';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('nlh_auth');
+  location.reload();
+}
+
+function checkAuth() {
+  if (sessionStorage.getItem('nlh_auth') === 'true') {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    initApp();
+  }
+}
+
+// ============ INIT ============
+function initApp() {
+  if (useLocalMode) {
+    seedInitialData();
+    collections = localData.collections || {};
+    renderCurrentView();
+    renderSidebarCollections();
+  } else {
+    dbHelper.ref('collections').on('value', (snapshot) => {
+      collections = snapshot.val() || {};
+      renderCurrentView();
+      renderSidebarCollections();
+    });
+    dbHelper.ref('collections').once('value', (snapshot) => {
+      if (!snapshot.val()) {
+        seedInitialData();
+      }
+    });
+  }
+}
+
+// ============ SEED DATA ============
+function seedInitialData() {
+  var seedCollections = {
+    easter_2026: {
+      name: 'Easter Collection', type: 'holiday', year: 2026,
+      onlineLaunch: '2026-03-06', retailLaunch: '2026-03-13',
+      milestones: buildMilestones({
+        creative_brief: '2025-12-12', rd_deadline: '2026-01-09', cost_sheet: '2026-01-16',
+        sample_labels: '2026-01-23', ship_photo_samples: '2026-01-30', rm_label_order: '2026-02-06',
+        production_start: '2026-02-13', wholesale_catalog: '2026-02-20', photo_social_deadline: '2026-02-20',
+        copy_assets: '2026-02-27', online_launch: '2026-03-06', retail_launch: '2026-03-13'
+      })
+    },
+    spring_2026: {
+      name: 'Spring Collection', type: 'seasonal', year: 2026,
+      onlineLaunch: '2026-03-22', retailLaunch: '2026-03-27',
+      milestones: buildMilestones({
+        creative_brief: '2025-12-29', rd_deadline: '2026-01-26', cost_sheet: '2026-02-02',
+        sample_labels: '2026-02-09', ship_photo_samples: '2026-02-16', rm_label_order: '2026-02-23',
+        production_start: '2026-03-02', wholesale_catalog: '2026-03-09', photo_social_deadline: '2026-03-09',
+        copy_assets: '2026-03-16', online_launch: '2026-03-22', retail_launch: '2026-03-27'
+      })
+    },
+    mothers_day_2026: {
+      name: "Mother's Day Collection", type: 'holiday', year: 2026,
+      onlineLaunch: '2026-04-09', retailLaunch: null,
+      milestones: buildMilestones({
+        creative_brief: '2026-01-15', rd_deadline: '2026-02-12', cost_sheet: '2026-02-19',
+        sample_labels: '2026-02-26', ship_photo_samples: '2026-03-05', rm_label_order: '2026-03-12',
+        production_start: '2026-03-19', wholesale_catalog: null, photo_social_deadline: '2026-03-26',
+        copy_assets: '2026-04-02', online_launch: '2026-04-09', retail_launch: null
+      })
+    },
+    summer_2026: {
+      name: 'Summer Collection', type: 'seasonal', year: 2026,
+      onlineLaunch: '2026-06-04', retailLaunch: '2026-06-11',
+      milestones: buildMilestones({
+        creative_brief: '2026-03-12', rd_deadline: '2026-04-09', cost_sheet: '2026-04-16',
+        sample_labels: '2026-04-23', ship_photo_samples: '2026-04-30', rm_label_order: '2026-05-07',
+        production_start: '2026-05-14', wholesale_catalog: '2026-05-21', photo_social_deadline: '2026-05-21',
+        copy_assets: '2026-05-28', online_launch: '2026-06-04', retail_launch: '2026-06-11'
+      })
+    },
+    back_to_school_2026: {
+      name: 'Back To School', type: 'holiday', year: 2026,
+      onlineLaunch: '2026-07-24', retailLaunch: '2026-07-31',
+      milestones: buildMilestones({
+        creative_brief: '2026-05-01', rd_deadline: '2026-05-29', cost_sheet: '2026-06-05',
+        sample_labels: null, ship_photo_samples: '2026-06-19', rm_label_order: '2026-06-26',
+        production_start: '2026-07-03', wholesale_catalog: '2026-07-10', photo_social_deadline: '2026-07-10',
+        copy_assets: '2026-07-17', online_launch: '2026-07-24', retail_launch: '2026-07-31'
+      })
+    },
+    fall_2026: {
+      name: 'Fall Collection', type: 'seasonal', year: 2026,
+      onlineLaunch: '2026-09-22', retailLaunch: '2026-09-29',
+      milestones: buildMilestones({
+        creative_brief: '2026-06-30', rd_deadline: '2026-07-28', cost_sheet: '2026-08-04',
+        sample_labels: '2026-08-11', ship_photo_samples: '2026-08-18', rm_label_order: '2026-08-25',
+        production_start: '2026-09-01', wholesale_catalog: '2026-09-08', photo_social_deadline: '2026-09-08',
+        copy_assets: '2026-09-15', online_launch: '2026-09-22', retail_launch: '2026-09-29'
+      })
+    },
+    halloween_2026: {
+      name: 'Halloween Collection', type: 'holiday', year: 2026,
+      onlineLaunch: '2026-09-30', retailLaunch: '2026-10-07',
+      milestones: buildMilestones({
+        creative_brief: '2026-07-08', rd_deadline: '2026-08-05', cost_sheet: '2026-08-12',
+        sample_labels: null, ship_photo_samples: '2026-08-26', rm_label_order: '2026-09-02',
+        production_start: '2026-09-09', wholesale_catalog: '2026-09-16', photo_social_deadline: '2026-09-16',
+        copy_assets: '2026-09-23', online_launch: '2026-09-30', retail_launch: '2026-10-07'
+      })
+    },
+    winter_holiday_2026: {
+      name: 'Winter/Holiday Collection', type: 'seasonal', year: 2026,
+      onlineLaunch: '2026-10-16', retailLaunch: '2026-10-23',
+      milestones: buildMilestones({
+        creative_brief: '2026-07-21', rd_deadline: '2026-08-21', cost_sheet: '2026-08-28',
+        sample_labels: '2026-09-04', ship_photo_samples: '2026-09-11', rm_label_order: '2026-09-18',
+        production_start: '2026-09-25', wholesale_catalog: '2026-10-02', photo_social_deadline: '2026-10-02',
+        copy_assets: '2026-10-09', online_launch: '2026-10-16', retail_launch: '2026-10-23'
+      })
+    },
+    f1_2026: {
+      name: 'Formula 1 Collection', type: 'event', year: 2026,
+      onlineLaunch: null, retailLaunch: '2026-11-12',
+      milestones: buildMilestones({
+        creative_brief: '2026-08-20', rd_deadline: '2026-09-17', cost_sheet: '2026-09-24',
+        sample_labels: null, ship_photo_samples: null, rm_label_order: null,
+        production_start: '2026-10-22', wholesale_catalog: null, photo_social_deadline: null,
+        copy_assets: '2026-11-05', online_launch: null, retail_launch: '2026-11-12'
+      })
+    },
+    nfr_rodeo_2026: {
+      name: 'NFR Rodeo Collection', type: 'event', year: 2026,
+      onlineLaunch: null, retailLaunch: '2026-11-26',
+      milestones: buildMilestones({
+        creative_brief: '2026-09-03', rd_deadline: '2026-10-01', cost_sheet: '2026-10-08',
+        sample_labels: null, ship_photo_samples: null, rm_label_order: null,
+        production_start: '2026-11-05', wholesale_catalog: null, photo_social_deadline: null,
+        copy_assets: '2026-11-19', online_launch: null, retail_launch: '2026-11-26'
+      })
+    }
+  };
+
+  dbHelper.ref('collections').set(seedCollections);
+}
+
+function buildMilestones(dates) {
+  const milestones = {};
+  MILESTONE_TEMPLATE.forEach(tmpl => {
+    if (dates[tmpl.key] !== undefined) {
+      milestones[tmpl.key] = {
+        name: tmpl.name,
+        dept: tmpl.dept,
+        targetDate: dates[tmpl.key],
+        actualDate: null,
+        status: dates[tmpl.key] ? 'not_started' : 'skipped',
+        notes: {}
+      };
+    }
+  });
+  return milestones;
+}
+
+// ============ NAVIGATION ============
+function navigateTo(view, detailId) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  if (view === 'detail' && detailId) {
+    currentDetailId = detailId;
+    document.getElementById('view-detail').classList.add('active');
+    document.getElementById('pageTitle').textContent = collections[detailId]?.name || 'Collection';
+    document.getElementById('filterToggle').style.display = 'none';
+    renderDetail();
+  } else {
+    document.getElementById(`view-${view}`).classList.add('active');
+    const navItem = document.querySelector(`.nav-item[data-view="${view}"]`);
+    if (navItem) navItem.classList.add('active');
+    document.getElementById('filterToggle').style.display = (view === 'dashboard' || view === 'kanban') ? 'flex' : 'none';
+
+    switch(view) {
+      case 'dashboard':
+        document.getElementById('pageTitle').textContent = 'Dashboard';
+        renderDashboard();
+        break;
+      case 'timeline':
+        document.getElementById('pageTitle').textContent = 'Timeline';
+        renderTimeline();
+        break;
+      case 'kanban':
+        document.getElementById('pageTitle').textContent = 'Board';
+        renderKanban();
+        break;
+    }
+  }
+
+  // Close mobile menu
+  document.getElementById('sidebar').classList.remove('mobile-open');
+}
+
+function renderCurrentView() {
+  if (currentView === 'detail' && currentDetailId) {
+    renderDetail();
+  } else {
+    switch(currentView) {
+      case 'dashboard': renderDashboard(); break;
+      case 'timeline': renderTimeline(); break;
+      case 'kanban': renderKanban(); break;
+    }
+  }
+  renderSidebarCollections();
+}
+
+function toggleMobileMenu() {
+  document.getElementById('sidebar').classList.toggle('mobile-open');
+}
+
+// ============ HELPERS ============
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatDateFull(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function daysBetween(date1, date2) {
+  const d1 = new Date(date1 + 'T00:00:00');
+  const d2 = new Date(date2 + 'T00:00:00');
+  return Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+function getCollectionStatus(col) {
+  const milestones = Object.values(col.milestones || {}).filter(m => m.status !== 'skipped');
+  if (milestones.length === 0) return 'not_started';
+  const completed = milestones.filter(m => m.status === 'complete').length;
+  if (completed === milestones.length) return 'complete';
+  const hasDelayed = milestones.some(m => m.status === 'delayed' || (m.status !== 'complete' && m.targetDate && m.targetDate < today()));
+  if (hasDelayed) return 'delayed';
+  const hasAtRisk = milestones.some(m => {
+    if (m.status === 'complete' || !m.targetDate) return false;
+    const daysUntil = daysBetween(today(), m.targetDate);
+    return daysUntil <= 5 && daysUntil >= 0 && m.status !== 'complete';
+  });
+  if (hasAtRisk) return 'at_risk';
+  return 'on_track';
+}
+
+function getCollectionProgress(col) {
+  const milestones = Object.values(col.milestones || {}).filter(m => m.status !== 'skipped');
+  if (milestones.length === 0) return 0;
+  return Math.round((milestones.filter(m => m.status === 'complete').length / milestones.length) * 100);
+}
+
+function getNextDeadline(col) {
+  const milestones = Object.values(col.milestones || {})
+    .filter(m => m.status !== 'skipped' && m.status !== 'complete' && m.targetDate)
+    .sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+  return milestones[0] || null;
+}
+
+function autoUpdateStatuses() {
+  const t = today();
+  Object.entries(collections).forEach(([id, col]) => {
+    Object.entries(col.milestones || {}).forEach(([key, m]) => {
+      if (m.status === 'skipped' || m.status === 'complete') return;
+      if (m.targetDate && m.targetDate < t) {
+        dbHelper.ref(`collections/${id}/milestones/${key}/status`).set('delayed');
+      } else if (m.targetDate) {
+        const daysUntil = daysBetween(t, m.targetDate);
+        if (daysUntil <= 5 && m.status === 'not_started') {
+          dbHelper.ref(`collections/${id}/milestones/${key}/status`).set('at_risk');
+        }
+      }
+    });
+  });
+}
+
+function statusLabel(status) {
+  const labels = {
+    on_track: 'On Track', at_risk: 'At Risk', delayed: 'Delayed',
+    complete: 'Complete', not_started: 'Not Started', skipped: 'Skipped'
+  };
+  return labels[status] || status;
+}
+
+function statusBadgeClass(status) {
+  const classes = {
+    on_track: 'badge-on-track', at_risk: 'badge-at-risk', delayed: 'badge-delayed',
+    complete: 'badge-complete', not_started: 'badge-not-started'
+  };
+  return classes[status] || '';
+}
+
+function progressColor(status) {
+  const colors = {
+    on_track: 'var(--status-on-track)', at_risk: 'var(--status-at-risk)',
+    delayed: 'var(--status-delayed)', complete: 'var(--status-complete)',
+    not_started: 'var(--status-not-started)'
+  };
+  return colors[status] || 'var(--accent)';
+}
+
+function deptColor(dept) {
+  return DEPARTMENTS[dept]?.color || '#666';
+}
+
+function deptName(dept) {
+  return DEPARTMENTS[dept]?.name || dept;
+}
+
+// Sort collections by earliest launch date
+function sortedCollections() {
+  return Object.entries(collections).sort((a, b) => {
+    const dateA = a[1].onlineLaunch || a[1].retailLaunch || '9999';
+    const dateB = b[1].onlineLaunch || b[1].retailLaunch || '9999';
+    return dateA.localeCompare(dateB);
+  });
+}
+
+// ============ RENDER: SIDEBAR ============
+function renderSidebarCollections() {
+  const container = document.getElementById('sidebarCollections');
+  container.innerHTML = sortedCollections().map(([id, col]) => {
+    const status = getCollectionStatus(col);
+    const statusColor = progressColor(status);
+    return `<div class="nav-item ${currentView === 'detail' && currentDetailId === id ? 'active' : ''}" onclick="navigateTo('detail','${id}')">
+      <span class="dept-dot" style="background:${statusColor}"></span>
+      ${col.name}
+    </div>`;
+  }).join('');
+}
+
+// ============ RENDER: DASHBOARD ============
+function renderDashboard() {
+  autoUpdateStatuses();
+  const filterAtRisk = document.getElementById('filterAtRisk')?.checked;
+  const sorted = sortedCollections();
+  const statuses = sorted.map(([id, col]) => getCollectionStatus(col));
+
+  // Stats
+  const totalActive = sorted.filter(([,c]) => getCollectionStatus(c) !== 'complete').length;
+  const onTrack = statuses.filter(s => s === 'on_track').length;
+  const atRisk = statuses.filter(s => s === 'at_risk').length;
+  const delayed = statuses.filter(s => s === 'delayed').length;
+
+  document.getElementById('dashboardStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Active Collections</div><div class="stat-value">${totalActive}</div></div>
+    <div class="stat-card"><div class="stat-label">On Track</div><div class="stat-value on-track">${onTrack}</div></div>
+    <div class="stat-card"><div class="stat-label">At Risk</div><div class="stat-value at-risk">${atRisk}</div></div>
+    <div class="stat-card"><div class="stat-label">Delayed</div><div class="stat-value delayed">${delayed}</div></div>
+  `;
+
+  // Collections list
+  let filteredCollections = sorted;
+  if (filterAtRisk) {
+    filteredCollections = sorted.filter(([id, col]) => {
+      const s = getCollectionStatus(col);
+      return s === 'at_risk' || s === 'delayed';
+    });
+  }
+
+  document.getElementById('collectionsList').innerHTML = filteredCollections.map(([id, col]) => {
+    const status = getCollectionStatus(col);
+    const progress = getCollectionProgress(col);
+    const next = getNextDeadline(col);
+    let countdown = '';
+    if (next) {
+      const days = daysBetween(today(), next.targetDate);
+      if (days < 0) countdown = `<span class="deadline-countdown urgent">⚠️ ${next.name} is ${Math.abs(days)} days overdue</span>`;
+      else if (days === 0) countdown = `<span class="deadline-countdown urgent">⚡ ${next.name} is due today</span>`;
+      else if (days <= 5) countdown = `<span class="deadline-countdown soon">⏰ ${next.name} in ${days} days</span>`;
+      else countdown = `<span class="deadline-countdown">Next: ${next.name} in ${days} days</span>`;
+    }
+
+    return `<div class="collection-card" onclick="navigateTo('detail','${id}')">
+      <div class="collection-card-header">
+        <span class="collection-name">${col.name}</span>
+        <span class="collection-type type-${col.type}">${col.type}</span>
+      </div>
+      <div class="collection-dates">
+        ${col.onlineLaunch ? 'Online: ' + formatDate(col.onlineLaunch) : ''}
+        ${col.onlineLaunch && col.retailLaunch ? ' · ' : ''}
+        ${col.retailLaunch ? 'Retail: ' + formatDate(col.retailLaunch) : ''}
+      </div>
+      <div class="collection-progress">
+        <span class="collection-status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width:${progress}%;background:${progressColor(status)}"></div>
+        </div>
+        <span class="progress-text">${progress}%</span>
+      </div>
+      ${countdown}
+    </div>`;
+  }).join('') || '<div class="empty-state"><p>No collections match the current filter.</p></div>';
+
+  // This Week
+  renderThisWeek();
+}
+
+function renderThisWeek() {
+  const t = today();
+  const weekEnd = new Date();
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekEndStr = weekEnd.toISOString().split('T')[0];
+
+  let items = [];
+  Object.entries(collections).forEach(([id, col]) => {
+    Object.entries(col.milestones || {}).forEach(([key, m]) => {
+      if (m.status === 'skipped' || m.status === 'complete') return;
+      if (m.targetDate && m.targetDate <= weekEndStr) {
+        items.push({ ...m, collectionId: id, collectionName: col.name, milestoneKey: key });
+      }
+    });
+  });
+
+  items.sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''));
+
+  document.getElementById('thisWeekList').innerHTML = items.length ? items.map(item => {
+    const days = daysBetween(t, item.targetDate);
+    let dateClass = '';
+    let dateLabel = formatDate(item.targetDate);
+    if (days < 0) { dateClass = 'overdue-text'; dateLabel = `${Math.abs(days)}d overdue`; }
+    else if (days === 0) { dateClass = 'today-text'; dateLabel = 'Today'; }
+
+    return `<div class="this-week-item" onclick="navigateTo('detail','${item.collectionId}')">
+      <span class="dept-dot" style="background:${deptColor(item.dept)}"></span>
+      <div class="this-week-info">
+        <div class="this-week-milestone">${item.name}</div>
+        <div class="this-week-collection">${item.collectionName}</div>
+      </div>
+      <span class="this-week-date ${dateClass}">${dateLabel}</span>
+    </div>`;
+  }).join('') : '<div class="empty-state"><p>Nothing due this week! 🎉</p></div>';
+}
+
+// ============ RENDER: COLLECTION DETAIL ============
+function renderDetail() {
+  if (!currentDetailId || !collections[currentDetailId]) return;
+  const col = collections[currentDetailId];
+  const status = getCollectionStatus(col);
+  const progress = getCollectionProgress(col);
+
+  document.getElementById('detailHeader').innerHTML = `
+    <div class="detail-title-group">
+      <h2>${col.name}</h2>
+      <div class="detail-meta">
+        <span class="collection-type type-${col.type}">${col.type}</span>
+        <span>${col.onlineLaunch ? 'Online: ' + formatDateFull(col.onlineLaunch) : 'Online: N/A'}</span>
+        <span>${col.retailLaunch ? 'Retail: ' + formatDateFull(col.retailLaunch) : 'Retail: N/A'}</span>
+        <span class="collection-status-badge ${statusBadgeClass(status)}">${statusLabel(status)}</span>
+        <span>${progress}% complete</span>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-secondary btn-sm" onclick="openEditModal('${currentDetailId}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </button>
+    </div>
+  `;
+
+  const milestones = MILESTONE_TEMPLATE.filter(tmpl => col.milestones?.[tmpl.key] && col.milestones[tmpl.key].status !== 'skipped');
+
+  document.getElementById('milestoneList').innerHTML = `
+    <div style="display:grid;grid-template-columns:12px 1fr 140px 140px 100px 40px;gap:16px;padding:8px 16px;margin-bottom:4px;">
+      <span></span>
+      <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Milestone</span>
+      <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Target Date</span>
+      <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Completed</span>
+      <span style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Status</span>
+      <span></span>
+    </div>
+    ${milestones.map(tmpl => {
+      const m = col.milestones[tmpl.key];
+      const hasNotes = m.notes && Object.keys(m.notes).length > 0;
+      return `<div class="milestone-item">
+        <div class="milestone-dept-bar" style="background:${deptColor(m.dept)}"></div>
+        <div class="milestone-info">
+          <div class="milestone-name">${m.name}</div>
+          <div class="milestone-dept" style="color:${deptColor(m.dept)}">${deptName(m.dept)}</div>
+        </div>
+        <div class="milestone-target-date">${formatDateFull(m.targetDate)}</div>
+        <div class="milestone-actual-date">
+          <input type="date" value="${m.actualDate || ''}" onchange="updateMilestoneField('${currentDetailId}','${tmpl.key}','actualDate',this.value)">
+        </div>
+        <select class="milestone-status-select" onchange="updateMilestoneField('${currentDetailId}','${tmpl.key}','status',this.value)" style="border-left:3px solid ${progressColor(m.status)}">
+          <option value="not_started" ${m.status === 'not_started' ? 'selected' : ''}>Not Started</option>
+          <option value="on_track" ${m.status === 'on_track' ? 'selected' : ''}>On Track</option>
+          <option value="at_risk" ${m.status === 'at_risk' ? 'selected' : ''}>At Risk</option>
+          <option value="delayed" ${m.status === 'delayed' ? 'selected' : ''}>Delayed</option>
+          <option value="complete" ${m.status === 'complete' ? 'selected' : ''}>Complete</option>
+        </select>
+        <button class="milestone-notes-btn ${hasNotes ? 'has-notes' : ''}" onclick="openNotesPanel('${currentDetailId}','${tmpl.key}','${m.name}')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </button>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function updateMilestoneField(colId, milestoneKey, field, value) {
+  dbHelper.ref(`collections/${colId}/milestones/${milestoneKey}/${field}`).set(value);
+
+  // Auto-complete: if actual date is set, mark as complete
+  if (field === 'actualDate' && value) {
+    dbHelper.ref(`collections/${colId}/milestones/${milestoneKey}/status`).set('complete');
+  }
+}
+
+// ============ NOTES PANEL ============
+function openNotesPanel(colId, milestoneKey, milestoneName) {
+  currentNotesContext = { colId, milestoneKey };
+  document.getElementById('notesPanelTitle').textContent = milestoneName;
+  document.getElementById('notesPanel').classList.add('open');
+  document.getElementById('notesOverlay').classList.add('visible');
+  renderNotes();
+}
+
+function closeNotesPanel() {
+  document.getElementById('notesPanel').classList.remove('open');
+  document.getElementById('notesOverlay').classList.remove('visible');
+  currentNotesContext = null;
+}
+
+function renderNotes() {
+  if (!currentNotesContext) return;
+  const { colId, milestoneKey } = currentNotesContext;
+  const notes = collections[colId]?.milestones?.[milestoneKey]?.notes || {};
+
+  const notesList = Object.entries(notes)
+    .sort((a, b) => b[1].timestamp - a[1].timestamp)
+    .map(([key, note]) => `
+      <div class="note-item">
+        <div class="note-meta">${new Date(note.timestamp).toLocaleString()}</div>
+        <div class="note-text">${note.text}</div>
+      </div>
+    `).join('');
+
+  document.getElementById('notesList').innerHTML = notesList || '<div class="empty-state"><p>No notes yet.</p></div>';
+}
+
+function addNote() {
+  if (!currentNotesContext) return;
+  const text = document.getElementById('noteInput').value.trim();
+  if (!text) return;
+
+  const { colId, milestoneKey } = currentNotesContext;
+  const noteRef = dbHelper.ref(`collections/${colId}/milestones/${milestoneKey}/notes`).push();
+  noteRef.set({ text, timestamp: Date.now() });
+  document.getElementById('noteInput').value = '';
+
+  setTimeout(renderNotes, 500);
+}
+
+// ============ RENDER: TIMELINE ============
+function renderTimeline() {
+  const container = document.getElementById('timelineContainer');
+  renderDeptLegend('deptLegend');
+
+  if (timelineMode === 'collection') {
+    renderTimelineByCollection(container);
+  } else {
+    renderTimelineByDepartment(container);
+  }
+}
+
+function setTimelineMode(mode, btn) {
+  timelineMode = mode;
+  document.querySelectorAll('.timeline-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+function getTimelineRange() {
+  let minDate = '2026-12-31';
+  let maxDate = '2025-01-01';
+  Object.values(collections).forEach(col => {
+    Object.values(col.milestones || {}).forEach(m => {
+      if (m.targetDate && m.status !== 'skipped') {
+        if (m.targetDate < minDate) minDate = m.targetDate;
+        if (m.targetDate > maxDate) maxDate = m.targetDate;
+      }
+    });
+  });
+  // Pad by 2 weeks on each side
+  const start = new Date(minDate + 'T00:00:00');
+  start.setDate(start.getDate() - 14);
+  const end = new Date(maxDate + 'T00:00:00');
+  end.setDate(end.getDate() + 14);
+  return { start, end };
+}
+
+function getMonthsBetween(start, end) {
+  const months = [];
+  const current = new Date(start);
+  current.setDate(1);
+  while (current <= end) {
+    months.push(new Date(current));
+    current.setMonth(current.getMonth() + 1);
+  }
+  return months;
+}
+
+function dateToPercent(dateStr, rangeStart, rangeDays) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const diff = (d - rangeStart) / (1000 * 60 * 60 * 24);
+  return (diff / rangeDays) * 100;
+}
+
+function renderTimelineByCollection(container) {
+  const range = getTimelineRange();
+  const rangeDays = (range.end - range.start) / (1000 * 60 * 60 * 24);
+  const months = getMonthsBetween(range.start, range.end);
+  const timelineWidth = Math.max(months.length * 120, 900);
+  const sorted = sortedCollections();
+  const todayPct = dateToPercent(today(), range.start, rangeDays);
+
+  let html = `<div style="min-width:${timelineWidth + 200}px;">`;
+
+  // Header
+  html += `<div class="timeline-header-row">
+    <div class="timeline-label-col">Collection</div>
+    <div class="timeline-months" style="position:relative;">
+      ${months.map(m => `<div class="timeline-month" style="flex:1;">${m.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}</div>`).join('')}
+    </div>
+  </div>`;
+
+  // Body
+  html += `<div class="timeline-body" style="position:relative;">`;
+
+  sorted.forEach(([id, col]) => {
+    const milestones = MILESTONE_TEMPLATE
+      .filter(t => col.milestones?.[t.key] && col.milestones[t.key].status !== 'skipped' && col.milestones[t.key].targetDate)
+      .map(t => ({ ...col.milestones[t.key], key: t.key }));
+
+    if (milestones.length === 0) return;
+
+    const firstDate = milestones[0].targetDate;
+    const lastDate = milestones[milestones.length - 1].targetDate;
+    const leftPct = dateToPercent(firstDate, range.start, rangeDays);
+    const rightPct = dateToPercent(lastDate, range.start, rangeDays);
+    const status = getCollectionStatus(col);
+
+    html += `<div class="timeline-row">
+      <div class="timeline-row-label" onclick="navigateTo('detail','${id}')" style="cursor:pointer;">
+        <span class="dept-dot" style="background:${progressColor(status)}"></span>
+        ${col.name}
+      </div>
+      <div class="timeline-row-bars" style="min-width:${timelineWidth}px;">
+        <div class="timeline-bar" style="left:${leftPct}%;width:${Math.max(rightPct - leftPct, 1)}%;background:${progressColor(status)};opacity:0.25;height:8px;border-radius:4px;"></div>
+        ${milestones.map(m => {
+          const pct = dateToPercent(m.targetDate, range.start, rangeDays);
+          return `<div class="timeline-milestone-dot" style="left:calc(${pct}% - 6px);background:${deptColor(m.dept)};" 
+            onmouseenter="showTooltip(event,'${m.name}','${deptName(m.dept)} · ${formatDate(m.targetDate)} · ${statusLabel(m.status)}')"
+            onmouseleave="hideTooltip()"></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+
+  // Today line
+  if (todayPct >= 0 && todayPct <= 100) {
+    html += `<div class="timeline-today-line" style="left:calc(200px + ${todayPct}% * (100% - 200px) / 100);"></div>`;
+  }
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+function renderTimelineByDepartment(container) {
+  const range = getTimelineRange();
+  const rangeDays = (range.end - range.start) / (1000 * 60 * 60 * 24);
+  const months = getMonthsBetween(range.start, range.end);
+  const timelineWidth = Math.max(months.length * 120, 900);
+
+  let html = `<div style="min-width:${timelineWidth + 200}px;">`;
+
+  // Header
+  html += `<div class="timeline-header-row">
+    <div class="timeline-label-col">Department</div>
+    <div class="timeline-months">
+      ${months.map(m => `<div class="timeline-month" style="flex:1;">${m.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}</div>`).join('')}
+    </div>
+  </div>`;
+
+  html += `<div class="timeline-body">`;
+
+  Object.entries(DEPARTMENTS).forEach(([deptKey, dept]) => {
+    let deptMilestones = [];
+    Object.entries(collections).forEach(([colId, col]) => {
+      Object.entries(col.milestones || {}).forEach(([mKey, m]) => {
+        if (m.dept === deptKey && m.status !== 'skipped' && m.targetDate) {
+          deptMilestones.push({ ...m, colId, colName: col.name, mKey });
+        }
+      });
+    });
+
+    deptMilestones.sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+
+    html += `<div class="timeline-row">
+      <div class="timeline-row-label">
+        <span class="dept-dot" style="background:${dept.color}"></span>
+        ${dept.name}
+      </div>
+      <div class="timeline-row-bars" style="min-width:${timelineWidth}px;">
+        ${deptMilestones.map(m => {
+          const pct = dateToPercent(m.targetDate, range.start, rangeDays);
+          return `<div class="timeline-milestone-dot" style="left:calc(${pct}% - 6px);background:${dept.color};border-color:${m.status === 'complete' ? 'var(--status-complete)' : m.status === 'delayed' ? 'var(--status-delayed)' : 'var(--bg-card)'};"
+            onclick="navigateTo('detail','${m.colId}')"
+            onmouseenter="showTooltip(event,'${m.colName}','${m.name} · ${formatDate(m.targetDate)} · ${statusLabel(m.status)}')"
+            onmouseleave="hideTooltip()"></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+function renderDeptLegend(containerId) {
+  document.getElementById(containerId).innerHTML = Object.entries(DEPARTMENTS).map(([key, dept]) =>
+    `<div class="dept-legend-item"><span class="dept-legend-dot" style="background:${dept.color}"></span>${dept.name}</div>`
+  ).join('');
+}
+
+// ============ RENDER: KANBAN ============
+function renderKanban() {
+  renderDeptLegend('kanbanLegend');
+  const filterAtRisk = document.getElementById('filterAtRisk')?.checked;
+
+  const columns = {
+    not_started: { title: 'Not Started', items: [] },
+    in_progress: { title: 'In Progress', items: [] },
+    at_risk_delayed: { title: 'At Risk / Delayed', items: [] },
+    complete: { title: 'Complete', items: [] }
+  };
+
+  Object.entries(collections).forEach(([colId, col]) => {
+    Object.entries(col.milestones || {}).forEach(([mKey, m]) => {
+      if (m.status === 'skipped') return;
+      const item = { ...m, colId, colName: col.name, mKey };
+      if (m.status === 'complete') columns.complete.items.push(item);
+      else if (m.status === 'delayed' || m.status === 'at_risk') columns.at_risk_delayed.items.push(item);
+      else if (m.status === 'on_track') columns.in_progress.items.push(item);
+      else columns.not_started.items.push(item);
+    });
+  });
+
+  // Sort each column by date
+  Object.values(columns).forEach(col => {
+    col.items.sort((a, b) => (a.targetDate || '').localeCompare(b.targetDate || ''));
+  });
+
+  if (filterAtRisk) {
+    columns.not_started.items = [];
+    columns.in_progress.items = [];
+    columns.complete.items = [];
+  }
+
+  document.getElementById('kanbanContainer').innerHTML = Object.entries(columns).map(([key, col]) => `
+    <div class="kanban-column">
+      <div class="kanban-column-header">
+        <span class="kanban-column-title">${col.title} <span class="kanban-count">${col.items.length}</span></span>
+      </div>
+      <div class="kanban-column-body">
+        ${col.items.map(item => `
+          <div class="kanban-card" style="border-left-color:${deptColor(item.dept)}" onclick="navigateTo('detail','${item.colId}')">
+            <div class="kanban-card-milestone">${item.name}</div>
+            <div class="kanban-card-collection">${item.colName}</div>
+            <div class="kanban-card-date">${item.targetDate ? formatDate(item.targetDate) : '—'}</div>
+          </div>
+        `).join('') || '<div class="empty-state"><p>No items</p></div>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============ ADD/EDIT MODAL ============
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = 'New Collection';
+  document.getElementById('editCollectionId').value = '';
+  document.getElementById('collectionNameInput').value = '';
+  document.getElementById('collectionTypeInput').value = 'seasonal';
+  document.getElementById('collectionYearInput').value = '2026';
+  document.getElementById('onlineLaunchInput').value = '';
+  document.getElementById('retailLaunchInput').value = '';
+  renderMilestoneToggles();
+  document.getElementById('collectionModal').classList.add('visible');
+}
+
+function openEditModal(colId) {
+  const col = collections[colId];
+  if (!col) return;
+  document.getElementById('modalTitle').textContent = 'Edit Collection';
+  document.getElementById('editCollectionId').value = colId;
+  document.getElementById('collectionNameInput').value = col.name;
+  document.getElementById('collectionTypeInput').value = col.type;
+  document.getElementById('collectionYearInput').value = col.year || 2026;
+  document.getElementById('onlineLaunchInput').value = col.onlineLaunch || '';
+  document.getElementById('retailLaunchInput').value = col.retailLaunch || '';
+  renderMilestoneToggles(col);
+  document.getElementById('collectionModal').classList.add('visible');
+}
+
+function closeModal() {
+  document.getElementById('collectionModal').classList.remove('visible');
+}
+
+function renderMilestoneToggles(existingCol) {
+  const container = document.getElementById('milestoneToggles');
+  container.innerHTML = MILESTONE_TEMPLATE.map(tmpl => {
+    const existing = existingCol?.milestones?.[tmpl.key];
+    const enabled = existing ? existing.status !== 'skipped' : true;
+    const date = existing?.targetDate || '';
+    return `<div class="milestone-toggle-row">
+      <input type="checkbox" id="toggle_${tmpl.key}" ${enabled ? 'checked' : ''}>
+      <span style="color:${deptColor(tmpl.dept)}">●</span>
+      <span style="flex:1">${tmpl.name}</span>
+      <input type="date" id="date_${tmpl.key}" value="${date}">
+    </div>`;
+  }).join('');
+}
+
+function saveCollection() {
+  const editId = document.getElementById('editCollectionId').value;
+  const name = document.getElementById('collectionNameInput').value.trim();
+  if (!name) return alert('Please enter a collection name.');
+
+  const type = document.getElementById('collectionTypeInput').value;
+  const year = parseInt(document.getElementById('collectionYearInput').value);
+  const onlineLaunch = document.getElementById('onlineLaunchInput').value || null;
+  const retailLaunch = document.getElementById('retailLaunchInput').value || null;
+
+  const milestones = {};
+  MILESTONE_TEMPLATE.forEach(tmpl => {
+    const enabled = document.getElementById(`toggle_${tmpl.key}`).checked;
+    const date = document.getElementById(`date_${tmpl.key}`).value || null;
+    const existing = editId ? collections[editId]?.milestones?.[tmpl.key] : null;
+
+    milestones[tmpl.key] = {
+      name: tmpl.name,
+      dept: tmpl.dept,
+      targetDate: date,
+      actualDate: existing?.actualDate || null,
+      status: enabled ? (existing?.status || 'not_started') : 'skipped',
+      notes: existing?.notes || {}
+    };
+  });
+
+  const data = { name, type, year, onlineLaunch, retailLaunch, milestones };
+
+  if (editId) {
+    dbHelper.ref(`collections/${editId}`).update(data);
+  } else {
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + year;
+    dbHelper.ref(`collections/${key}`).set(data);
+  }
+
+  closeModal();
+}
+
+// ============ EXPORT ============
+function openExportModal() {
+  const sorted = sortedCollections();
+  const t = today();
+  let text = `NECTAR LAUNCH HUB — Status Snapshot\nGenerated: ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}\n\n`;
+
+  const statuses = sorted.map(([id, col]) => getCollectionStatus(col));
+  const totalActive = sorted.filter(([,c]) => getCollectionStatus(c) !== 'complete').length;
+  text += `SUMMARY: ${totalActive} active collections | ${statuses.filter(s => s === 'on_track').length} on track | ${statuses.filter(s => s === 'at_risk').length} at risk | ${statuses.filter(s => s === 'delayed').length} delayed\n\n`;
+
+  // At risk and delayed first
+  const urgent = sorted.filter(([,c]) => { const s = getCollectionStatus(c); return s === 'at_risk' || s === 'delayed'; });
+  if (urgent.length > 0) {
+    text += `⚠️ NEEDS ATTENTION\n${'─'.repeat(40)}\n`;
+    urgent.forEach(([id, col]) => {
+      text += `\n${col.name} [${statusLabel(getCollectionStatus(col)).toUpperCase()}]\n`;
+      Object.values(col.milestones || {}).forEach(m => {
+        if (m.status === 'delayed' || m.status === 'at_risk') {
+          const days = daysBetween(t, m.targetDate);
+          text += `  • ${m.name} (${deptName(m.dept)}) — ${days < 0 ? Math.abs(days) + ' days overdue' : 'due in ' + days + ' days'}\n`;
+        }
+      });
+    });
+    text += '\n';
+  }
+
+  // All collections summary
+  text += `ALL COLLECTIONS\n${'─'.repeat(40)}\n`;
+  sorted.forEach(([id, col]) => {
+    const status = getCollectionStatus(col);
+    const progress = getCollectionProgress(col);
+    const next = getNextDeadline(col);
+    text += `\n${col.name} — ${statusLabel(status)} (${progress}%)`;
+    if (col.onlineLaunch) text += ` | Online: ${formatDate(col.onlineLaunch)}`;
+    if (col.retailLaunch) text += ` | Retail: ${formatDate(col.retailLaunch)}`;
+    if (next) text += `\n  Next: ${next.name} — ${formatDate(next.targetDate)}`;
+    text += '\n';
+  });
+
+  document.getElementById('exportContent').textContent = text;
+  document.getElementById('exportModal').classList.add('visible');
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('visible');
+}
+
+function copyExport() {
+  const text = document.getElementById('exportContent').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+  });
+}
+
+// ============ TOOLTIP ============
+function showTooltip(event, title, detail) {
+  const tooltip = document.getElementById('tooltip');
+  document.getElementById('tooltipTitle').textContent = title;
+  document.getElementById('tooltipDetail').textContent = detail;
+  tooltip.style.left = (event.clientX + 12) + 'px';
+  tooltip.style.top = (event.clientY - 10) + 'px';
+  tooltip.classList.add('visible');
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+// ============ FILTERS ============
+function applyFilters() {
+  renderCurrentView();
+}
+
+// ============ INIT ============
+window.onload = function() { checkAuth(); };
+</script>
+</body>
+</html>
