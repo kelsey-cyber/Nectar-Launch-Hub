@@ -1,8 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Nectar Launch Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -1240,6 +1243,38 @@ body {
 .tooltip-title { font-weight: 600; margin-bottom: 4px; }
 .tooltip-detail { color: var(--text-secondary); }
 
+/* Mobile Bottom Nav */
+.bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: var(--bg-secondary); border-top: 1px solid var(--border); z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+.bottom-nav-inner { display: flex; height: 100%; }
+.bottom-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; position: relative; }
+.bottom-nav-item.active { color: var(--accent); }
+.bottom-nav-item svg { width: 22px; height: 22px; }
+.notif-badge { position: absolute; top: 6px; right: calc(50% - 16px); width: 8px; height: 8px; background: var(--status-delayed); border-radius: 50%; }
+
+/* Activity Feed */
+.activity-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; background: var(--accent-soft); }
+.activity-content { flex: 1; min-width: 0; }
+.activity-text { font-size: 13px; line-height: 1.4; }
+.activity-text strong { font-weight: 600; }
+.activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Mobile milestone cards */
+.milestone-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; border-left: 4px solid; }
+.milestone-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+.milestone-card-name { font-size: 14px; font-weight: 600; }
+.milestone-card-dept { font-size: 11px; margin-top: 2px; }
+.milestone-card-body { display: flex; flex-direction: column; gap: 8px; }
+.milestone-card-row { display: flex; align-items: center; gap: 8px; }
+.milestone-card-row label { font-size: 11px; color: var(--text-muted); min-width: 55px; text-transform: uppercase; letter-spacing: .5px; }
+.milestone-card-row span { font-size: 13px; }
+.milestone-card-row input, .milestone-card-row select { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 10px; flex: 1; min-width: 0; }
+.milestone-card-footer { display: flex; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.milestone-action-btn { flex: 1; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.milestone-action-btn:active { background: var(--bg-hover); }
+.milestone-action-btn.has-items { color: var(--accent); border-color: var(--accent); }
+
 /* ============ RESPONSIVE ============ */
 .mobile-menu-btn {
   display: none;
@@ -1251,26 +1286,31 @@ body {
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
+  .sidebar { transform: translateX(-100%); }
   .sidebar.mobile-open { transform: translateX(0); }
   .main-content { margin-left: 0; }
-  .mobile-menu-btn { display: block; }
-  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .bottom-nav { display: block; }
+  .mobile-menu-btn { display: none; }
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; }
+  .stat-card .stat-value { font-size: 24px; }
   .dashboard-grid { grid-template-columns: 1fr; }
-  .kanban-container { grid-template-columns: 1fr; }
-  .milestone-item {
-    grid-template-columns: 12px 1fr;
-    gap: 8px;
-  }
-  .milestone-target-date, .milestone-actual-date, .milestone-status-select, .milestone-notes-btn {
-    grid-column: 2;
-  }
+  .kanban-container { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .milestone-item { display: none; }
   .modal { width: 95vw; }
-  .page-body { padding: 16px; }
-  .page-header { padding: 16px; }
+  .page-body { padding: 16px 16px 100px; }
+  .page-header { padding: 12px 16px; }
+  .page-title { font-size: 18px; }
   .form-row { grid-template-columns: 1fr; }
+  .notes-panel { width: 100%; max-width: 100%; }
+  .btn-text-hide { display: none; }
+  .tooltip { display: none !important; }
+}
+
+@media (max-width: 480px) {
+  .kanban-container { grid-template-columns: 1fr; }
+  .stat-card .stat-label { font-size: 10px; }
+  .stat-card .stat-value { font-size: 22px; }
 }
 
 /* Scrollbar */
@@ -1316,6 +1356,10 @@ body {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
         Board
       </div>
+      <div class="nav-item" data-view="activity" onclick="navigateTo('activity')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity
+      </div>
       <div class="nav-section-label">Collections</div>
       <div id="sidebarCollections"></div>
     </div>
@@ -1323,6 +1367,29 @@ body {
       <button class="btn-logout" onclick="logout()">Sign Out</button>
     </div>
   </nav>
+
+  <!-- Mobile Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <div class="bottom-nav-item active" data-view="dashboard" onclick="navigateTo('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Home
+      </div>
+      <div class="bottom-nav-item" data-view="timeline" onclick="navigateTo('timeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Timeline
+      </div>
+      <div class="bottom-nav-item" data-view="kanban" onclick="navigateTo('kanban')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg>
+        Board
+      </div>
+      <div class="bottom-nav-item" data-view="activity" onclick="navigateTo('activity')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity
+        <span class="notif-badge" id="mobileNotifBadge" style="display:none;"></span>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Content -->
   <div class="main-content">
@@ -1335,11 +1402,11 @@ body {
         </label>
         <button class="btn btn-secondary btn-sm" onclick="openExportModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export
+          <span class="btn-text-hide">Export</span>
         </button>
         <button class="btn btn-primary btn-sm" onclick="openAddModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          New Collection
+          <span class="btn-text-hide">New</span>
         </button>
       </div>
     </div>
@@ -1390,6 +1457,17 @@ body {
       <div class="view" id="view-kanban">
         <div class="dept-legend" id="kanbanLegend"></div>
         <div class="kanban-container" id="kanbanContainer"></div>
+      </div>
+
+      <!-- Activity View -->
+      <div class="view" id="view-activity">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Activity Log</h3>
+            <button class="btn btn-secondary btn-sm" onclick="clearActivityNotifs()">Mark read</button>
+          </div>
+          <div class="panel-body" id="activityFeed" style="max-height:700px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1788,7 +1866,8 @@ function buildMilestones(dates) {
         targetDate: dates[tmpl.key],
         actualDate: null,
         status: dates[tmpl.key] ? 'not_started' : 'skipped',
-        notes: {}
+        notes: {},
+        links: {}
       };
     }
   });
@@ -2151,8 +2230,9 @@ function updateMilestoneField(colId, milestoneKey, field, value) {
 
 // ============ NOTES PANEL ============
 function openNotesPanel(colId, milestoneKey, milestoneName) {
-  currentNotesContext = { colId, milestoneKey };
-  document.getElementById('notesPanelTitle').textContent = milestoneName;
+  currentNotesContext = { colId, milestoneKey, mode: 'notes' };
+  document.getElementById('notesPanelTitle').textContent = '💬 ' + milestoneName;
+  document.querySelector('.notes-input-area').innerHTML = '<textarea id="noteInput" placeholder="Add a note..."></textarea><button onclick="addNote()">Post</button>';
   document.getElementById('notesPanel').classList.add('open');
   document.getElementById('notesOverlay').classList.add('visible');
   renderNotes();
@@ -2576,6 +2656,263 @@ function hideTooltip() {
 function applyFilters() {
   renderCurrentView();
 }
+
+// ============ ACTIVITY LOG ============
+var activityLog = [];
+var lastSeenActivity = parseInt(localStorage.getItem('nlh_lastSeen') || '0');
+
+function logActivity(type, text) {
+  var entry = { type: type, text: text, timestamp: Date.now() };
+  if (useLocalMode) {
+    activityLog.unshift(entry);
+  } else {
+    dbHelper.ref('activity').push().set(entry);
+  }
+  updateNotifBadge();
+}
+
+function updateNotifBadge() {
+  var unread = activityLog.filter(function(a) { return a.timestamp > lastSeenActivity; }).length;
+  var badge = document.getElementById('mobileNotifBadge');
+  if (badge) badge.style.display = unread > 0 ? 'block' : 'none';
+}
+
+function clearActivityNotifs() {
+  lastSeenActivity = Date.now();
+  localStorage.setItem('nlh_lastSeen', lastSeenActivity.toString());
+  updateNotifBadge();
+}
+
+function renderActivity() {
+  var container = document.getElementById('activityFeed');
+  if (!activityLog.length) { container.innerHTML = '<div class="empty-state"><p>No activity yet. Changes will appear here.</p></div>'; return; }
+  var icons = { status_change:'🔄', date_change:'📅', note_added:'💬', collection_added:'✨', collection_edited:'✏️', completed:'✅' };
+  container.innerHTML = activityLog.slice(0, 100).map(function(a) {
+    var diff = (Date.now() - a.timestamp) / 1000;
+    var ago = diff < 60 ? 'Just now' : diff < 3600 ? Math.floor(diff/60)+'m ago' : diff < 86400 ? Math.floor(diff/3600)+'h ago' : diff < 604800 ? Math.floor(diff/86400)+'d ago' : new Date(a.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return '<div class="activity-item"><div class="activity-icon">'+(icons[a.type]||'📋')+'</div><div class="activity-content"><div class="activity-text">'+a.text+'</div><div class="activity-time">'+ago+'</div></div></div>';
+  }).join('');
+}
+
+// ============ MOBILE DETAIL (card layout) ============
+function renderDetailMobile() {
+  if (!currentDetailId || !collections[currentDetailId]) return;
+  var col = collections[currentDetailId];
+  var status = getCollectionStatus(col);
+  var progress = getCollectionProgress(col);
+  var milestones = MILESTONE_TEMPLATE.filter(function(t) { return col.milestones && col.milestones[t.key] && col.milestones[t.key].status !== 'skipped'; });
+
+  var html = '<button class="detail-back" onclick="navigateTo(\'dashboard\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Back</button>';
+  html += '<div class="detail-header"><div class="detail-title-group"><h2>' + col.name + '</h2>';
+  html += '<div class="detail-meta"><span class="collection-type type-' + col.type + '">' + col.type + '</span>';
+  html += '<span>' + (col.onlineLaunch ? 'Online: ' + formatDate(col.onlineLaunch) : 'Online: N/A') + '</span>';
+  html += '<span>' + (col.retailLaunch ? 'Retail: ' + formatDate(col.retailLaunch) : 'Retail: N/A') + '</span>';
+  html += '<span class="collection-status-badge ' + statusBadgeClass(status) + '">' + statusLabel(status) + '</span>';
+  html += '<span>' + progress + '%</span></div>';
+  html += '<div style="margin-top:10px"><button class="btn btn-secondary btn-sm" onclick="openEditModal(\'' + currentDetailId + '\')">✏️ Edit</button></div>';
+  html += '</div></div>';
+
+  milestones.forEach(function(tmpl) {
+    var m = col.milestones[tmpl.key];
+    var hasNotes = m.notes && Object.keys(m.notes).length > 0;
+    var hasLinks = m.links && Object.keys(m.links).length > 0;
+    var nc = hasNotes ? Object.keys(m.notes).length : 0;
+    var lc = hasLinks ? Object.keys(m.links).length : 0;
+
+    html += '<div class="milestone-card" style="border-left-color:' + deptColor(m.dept) + '">';
+    html += '<div class="milestone-card-header"><div><div class="milestone-card-name">' + m.name + '</div>';
+    html += '<div class="milestone-card-dept" style="color:' + deptColor(m.dept) + '">' + deptName(m.dept) + '</div></div>';
+    html += '<span class="collection-status-badge ' + statusBadgeClass(m.status) + '" style="font-size:10px;">' + statusLabel(m.status) + '</span></div>';
+    html += '<div class="milestone-card-body">';
+    html += '<div class="milestone-card-row"><label>Target</label><span>' + formatDateFull(m.targetDate) + '</span></div>';
+    html += '<div class="milestone-card-row"><label>Done</label><input type="date" value="' + (m.actualDate || '') + '" onchange="updateMilestoneField(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'actualDate\',this.value)"></div>';
+    html += '<div class="milestone-card-row"><label>Status</label><select onchange="updateMilestoneField(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'status\',this.value)" style="border-left:3px solid ' + progressColor(m.status) + '">';
+    ['not_started','on_track','at_risk','delayed','complete'].forEach(function(s) {
+      html += '<option value="' + s + '"' + (m.status === s ? ' selected' : '') + '>' + statusLabel(s) + '</option>';
+    });
+    html += '</select></div></div>';
+    html += '<div class="milestone-card-footer">';
+    html += '<button class="milestone-action-btn ' + (hasNotes ? 'has-items' : '') + '" onclick="openNotesPanel(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + m.name.replace(/'/g, "\\'") + '\')">💬 Notes' + (nc ? ' (' + nc + ')' : '') + '</button>';
+    html += '<button class="milestone-action-btn ' + (hasLinks ? 'has-items' : '') + '" onclick="openLinksPanel(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + m.name.replace(/'/g, "\\'") + '\')">📎 Files' + (lc ? ' (' + lc + ')' : '') + '</button>';
+    html += '</div></div>';
+  });
+
+  document.getElementById('view-detail').innerHTML = html;
+}
+
+// ============ FILE LINKS ============
+function openLinksPanel(colId, milestoneKey, milestoneName) {
+  currentNotesContext = { colId: colId, milestoneKey: milestoneKey, mode: 'links' };
+  document.getElementById('notesPanelTitle').textContent = '📎 Files — ' + milestoneName;
+  renderLinks();
+  document.getElementById('notesPanel').classList.add('open');
+  document.getElementById('notesOverlay').classList.add('visible');
+  // Change input area for links
+  document.querySelector('.notes-input-area').innerHTML = '<input type="url" id="linkUrlInput" placeholder="Paste Google Drive link..." style="flex:1;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:DM Sans,sans-serif;font-size:14px;padding:10px;outline:none;"><button onclick="addLink()">Add</button>';
+}
+
+function renderLinks() {
+  if (!currentNotesContext || currentNotesContext.mode !== 'links') return;
+  var links = collections[currentNotesContext.colId]?.milestones?.[currentNotesContext.milestoneKey]?.links || {};
+  var arr = Object.entries(links).sort(function(a,b) { return (b[1].timestamp||0) - (a[1].timestamp||0); });
+  document.getElementById('notesList').innerHTML = arr.length ? arr.map(function(e) {
+    return '<div class="note-item"><div class="note-meta">Added ' + new Date(e[1].timestamp).toLocaleString() + '</div><div class="note-text"><a href="' + e[1].url + '" target="_blank" rel="noopener" style="color:var(--dept-online);word-break:break-all;">' + e[1].url + '</a></div></div>';
+  }).join('') : '<div class="empty-state"><p>No files linked yet.</p></div>';
+}
+
+function addLink() {
+  if (!currentNotesContext) return;
+  var url = (document.getElementById('linkUrlInput') || {}).value;
+  if (!url || !url.trim()) return;
+  var path = 'collections/' + currentNotesContext.colId + '/milestones/' + currentNotesContext.milestoneKey + '/links';
+  dbHelper.ref(path).push().set({ url: url.trim(), timestamp: Date.now() });
+  document.getElementById('linkUrlInput').value = '';
+  setTimeout(function() { renderLinks(); }, 300);
+}
+
+// ============ INIT WITH ACTIVITY ============
+var origInitApp = initApp;
+initApp = function() {
+  if (useLocalMode) {
+    seedInitialData();
+    collections = localData.collections || {};
+    renderCurrentView(); renderSidebarCollections(); updateNotifBadge();
+  } else {
+    dbHelper.ref('collections').on('value', function(snapshot) {
+      collections = snapshot.val() || {};
+      renderCurrentView(); renderSidebarCollections();
+    });
+    dbHelper.ref('activity').on('value', function(snapshot) {
+      var raw = snapshot.val() || {};
+      activityLog = Object.values(raw).sort(function(a,b) { return b.timestamp - a.timestamp; });
+      updateNotifBadge();
+      if (currentView === 'activity') renderActivity();
+    });
+    dbHelper.ref('collections').once('value', function(snapshot) {
+      if (!snapshot.val()) seedInitialData();
+    });
+  }
+};
+
+// ============ OVERRIDE NAVIGATION FOR MOBILE + ACTIVITY ============
+var origNavigateTo = navigateTo;
+navigateTo = function(view, detailId) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.querySelectorAll('.bottom-nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('filterToggle').style.display = 'none';
+
+  if (view === 'detail' && detailId) {
+    currentDetailId = detailId;
+    document.getElementById('view-detail').classList.add('active');
+    document.getElementById('pageTitle').textContent = collections[detailId]?.name || 'Collection';
+    // Use card layout for mobile-friendly display
+    renderDetailMobile();
+  } else if (view === 'activity') {
+    document.getElementById('view-activity').classList.add('active');
+    document.getElementById('pageTitle').textContent = 'Activity';
+    var ni = document.querySelector('.nav-item[data-view="activity"]');
+    if (ni) ni.classList.add('active');
+    var bi = document.querySelector('.bottom-nav-item[data-view="activity"]');
+    if (bi) bi.classList.add('active');
+    clearActivityNotifs();
+    renderActivity();
+  } else {
+    document.getElementById('view-' + view).classList.add('active');
+    var navItem = document.querySelector('.nav-item[data-view="' + view + '"]');
+    if (navItem) navItem.classList.add('active');
+    var botItem = document.querySelector('.bottom-nav-item[data-view="' + view + '"]');
+    if (botItem) botItem.classList.add('active');
+    document.getElementById('filterToggle').style.display = (view === 'dashboard' || view === 'kanban') ? 'flex' : 'none';
+    var titles = { dashboard: 'Dashboard', timeline: 'Timeline', kanban: 'Board' };
+    document.getElementById('pageTitle').textContent = titles[view] || '';
+    if (view === 'dashboard') renderDashboard();
+    else if (view === 'timeline') renderTimeline();
+    else if (view === 'kanban') renderKanban();
+  }
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  window.scrollTo(0, 0);
+};
+
+// ============ OVERRIDE renderCurrentView ============
+var origRenderCurrent = renderCurrentView;
+renderCurrentView = function() {
+  if (currentView === 'detail' && currentDetailId) renderDetailMobile();
+  else if (currentView === 'activity') renderActivity();
+  else {
+    if (currentView === 'dashboard') renderDashboard();
+    else if (currentView === 'timeline') renderTimeline();
+    else if (currentView === 'kanban') renderKanban();
+  }
+  renderSidebarCollections();
+};
+
+// ============ OVERRIDE updateMilestoneField FOR LOGGING ============
+var origUpdateMF = updateMilestoneField;
+updateMilestoneField = function(colId, milestoneKey, field, value) {
+  dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/' + field).set(value);
+  var mName = ((collections[colId] || {}).milestones || {})[milestoneKey]?.name || milestoneKey;
+  var cName = (collections[colId] || {}).name || colId;
+  if (field === 'status') {
+    logActivity(value === 'complete' ? 'completed' : 'status_change', '<strong>' + mName + '</strong> → ' + statusLabel(value) + ' in ' + cName);
+  }
+  if (field === 'actualDate' && value) {
+    dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/status').set('complete');
+    logActivity('completed', '<strong>' + mName + '</strong> completed in ' + cName);
+  }
+};
+
+// ============ OVERRIDE saveCollection FOR LOGGING ============
+var origSaveCollection = saveCollection;
+saveCollection = function() {
+  var editId = document.getElementById('editCollectionId').value;
+  var name = document.getElementById('collectionNameInput').value.trim();
+  if (!name) return alert('Please enter a collection name.');
+  var type = document.getElementById('collectionTypeInput').value;
+  var year = parseInt(document.getElementById('collectionYearInput').value);
+  var onlineLaunch = document.getElementById('onlineLaunchInput').value || null;
+  var retailLaunch = document.getElementById('retailLaunchInput').value || null;
+  var milestones = {};
+  MILESTONE_TEMPLATE.forEach(function(tmpl) {
+    var enabled = document.getElementById('toggle_' + tmpl.key).checked;
+    var date = document.getElementById('date_' + tmpl.key).value || null;
+    var existing = editId ? ((collections[editId] || {}).milestones || {})[tmpl.key] : null;
+    milestones[tmpl.key] = {
+      name: tmpl.name, dept: tmpl.dept, targetDate: date,
+      actualDate: existing ? existing.actualDate : null,
+      status: enabled ? (existing ? existing.status : 'not_started') : 'skipped',
+      notes: existing ? existing.notes || {} : {},
+      links: existing ? existing.links || {} : {}
+    };
+  });
+  var data = { name: name, type: type, year: year, onlineLaunch: onlineLaunch, retailLaunch: retailLaunch, milestones: milestones };
+  if (editId) {
+    dbHelper.ref('collections/' + editId).update(data);
+    logActivity('collection_edited', '<strong>' + name + '</strong> was updated');
+  } else {
+    var key = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + year;
+    dbHelper.ref('collections/' + key).set(data);
+    logActivity('collection_added', '<strong>' + name + '</strong> was added');
+  }
+  closeModal();
+};
+
+// ============ OVERRIDE addNote FOR LOGGING ============
+var origAddNote = addNote;
+addNote = function() {
+  if (!currentNotesContext) return;
+  if (currentNotesContext.mode === 'links') { addLink(); return; }
+  var text = (document.getElementById('noteInput') || {}).value;
+  if (!text || !text.trim()) return;
+  var path = 'collections/' + currentNotesContext.colId + '/milestones/' + currentNotesContext.milestoneKey + '/notes';
+  dbHelper.ref(path).push().set({ text: text.trim(), timestamp: Date.now() });
+  document.getElementById('noteInput').value = '';
+  var mName = ((collections[currentNotesContext.colId] || {}).milestones || {})[currentNotesContext.milestoneKey]?.name || '';
+  var cName = (collections[currentNotesContext.colId] || {}).name || '';
+  logActivity('note_added', 'Note added to <strong>' + mName + '</strong> in ' + cName);
+  setTimeout(function() { renderNotes(); }, 300);
+};
 
 // ============ INIT ============
 window.onload = function() { checkAuth(); };
