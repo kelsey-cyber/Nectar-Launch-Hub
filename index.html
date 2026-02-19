@@ -1275,6 +1275,48 @@ body {
 .milestone-action-btn:active { background: var(--bg-hover); }
 .milestone-action-btn.has-items { color: var(--accent); border-color: var(--accent); }
 
+/* Accountability / User Identity */
+.user-prompt { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 400; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.user-prompt-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 360px; text-align: center; }
+.user-prompt-card h3 { font-family: 'Fraunces', serif; font-size: 18px; margin-bottom: 8px; }
+.user-prompt-card p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+.user-prompt-card input { width: 100%; padding: 12px 14px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: 'DM Sans', sans-serif; font-size: 15px; margin-bottom: 14px; outline: none; text-align: center; }
+.user-prompt-card input:focus { border-color: var(--accent); }
+.user-prompt-card button { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 8px; color: white; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+.current-user-bar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--accent-soft); border-radius: 8px; font-size: 12px; color: var(--accent); margin-bottom: 16px; }
+.current-user-bar strong { font-weight: 600; }
+.current-user-bar button { background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; margin-left: auto; text-decoration: underline; }
+
+/* Checklist */
+.checklist-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.checklist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.checklist-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+.checklist-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: var(--bg-primary); border-radius: 6px; margin-bottom: 4px; }
+.checklist-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; margin-top: 1px; flex-shrink: 0; cursor: pointer; }
+.checklist-item-content { flex: 1; min-width: 0; }
+.checklist-item-text { font-size: 13px; }
+.checklist-item-text.checked { text-decoration: line-through; color: var(--text-muted); }
+.checklist-item-stamp { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.checklist-add { display: flex; gap: 6px; margin-top: 6px; }
+.checklist-add input { flex: 1; padding: 7px 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; }
+.checklist-add button { padding: 7px 12px; background: var(--accent); border: none; border-radius: 6px; color: white; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.checklist-remove { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 2px 4px; flex-shrink: 0; }
+.checklist-remove:hover { color: var(--status-delayed); }
+
+/* Gate badge */
+.gate-toggle { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); cursor: pointer; user-select: none; }
+.gate-toggle input { accent-color: var(--status-at-risk); width: 14px; height: 14px; }
+.gate-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(245,158,11,0.15); color: var(--status-at-risk); font-weight: 600; }
+.gate-blocked-msg { font-size: 12px; color: var(--status-at-risk); padding: 8px 10px; background: rgba(245,158,11,0.08); border-radius: 6px; margin-top: 6px; }
+
+/* Accountability stamp on milestone */
+.stamp { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 4px 0; }
+.stamp strong { color: var(--text-secondary); }
+
+/* Forms stub */
+.form-section { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.form-badge { font-size: 11px; color: var(--text-muted); font-style: italic; }
+
 /* ============ RESPONSIVE ============ */
 .mobile-menu-btn {
   display: none;
@@ -1550,6 +1592,16 @@ body {
       <button class="btn btn-secondary" onclick="closeExportModal()">Close</button>
       <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
     </div>
+  </div>
+</div>
+
+<!-- User Identity Prompt -->
+<div class="user-prompt" id="userPrompt" style="display:none;">
+  <div class="user-prompt-card">
+    <h3>Who's here?</h3>
+    <p>Your name will be tagged on everything you update.</p>
+    <input type="text" id="userNameInput" placeholder="Your name" onkeypress="if(event.key==='Enter')setUserName()">
+    <button onclick="setUserName()">Continue</button>
   </div>
 </div>
 
@@ -2912,6 +2964,299 @@ addNote = function() {
   var cName = (collections[currentNotesContext.colId] || {}).name || '';
   logActivity('note_added', 'Note added to <strong>' + mName + '</strong> in ' + cName);
   setTimeout(function() { renderNotes(); }, 300);
+};
+
+// ============ USER IDENTITY (Accountability) ============
+var currentUserName = localStorage.getItem('nlh_userName') || '';
+
+function promptUserName() {
+  if (!currentUserName) {
+    document.getElementById('userPrompt').style.display = 'flex';
+    document.getElementById('userNameInput').focus();
+  }
+}
+
+function setUserName() {
+  var name = (document.getElementById('userNameInput') || {}).value;
+  if (!name || !name.trim()) return;
+  currentUserName = name.trim();
+  localStorage.setItem('nlh_userName', currentUserName);
+  document.getElementById('userPrompt').style.display = 'none';
+}
+
+function changeUser() {
+  currentUserName = '';
+  localStorage.removeItem('nlh_userName');
+  promptUserName();
+}
+
+function getUserStamp() {
+  return currentUserName + ' · ' + new Date().toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
+}
+
+// ============ CHECKLIST FUNCTIONS ============
+function addChecklistItem(colId, mKey) {
+  var inputEl = document.getElementById('cl-input-' + mKey);
+  if (!inputEl) return;
+  var text = inputEl.value.trim();
+  if (!text) return;
+  var path = 'collections/' + colId + '/milestones/' + mKey + '/checklist';
+  var item = { text: text, checked: false, createdBy: currentUserName, createdAt: Date.now(), checkedBy: null, checkedAt: null };
+  dbHelper.ref(path).push().set(item);
+  inputEl.value = '';
+  var mName = ((collections[colId] || {}).milestones || {})[mKey]?.name || '';
+  logActivity('note_added', '<strong>' + currentUserName + '</strong> added checklist item to <strong>' + mName + '</strong>');
+  if (useLocalMode) { collections = localData.collections || {}; renderDetailMobile(); }
+}
+
+function toggleChecklistItem(colId, mKey, itemKey, checked) {
+  if (!currentUserName) { promptUserName(); return; }
+  var path = 'collections/' + colId + '/milestones/' + mKey + '/checklist/' + itemKey;
+  if (checked) {
+    dbHelper.ref(path + '/checked').set(true);
+    dbHelper.ref(path + '/checkedBy').set(currentUserName);
+    dbHelper.ref(path + '/checkedAt').set(Date.now());
+  } else {
+    dbHelper.ref(path + '/checked').set(false);
+    dbHelper.ref(path + '/checkedBy').set(null);
+    dbHelper.ref(path + '/checkedAt').set(null);
+  }
+  var mName = ((collections[colId] || {}).milestones || {})[mKey]?.name || '';
+  var itemText = ((collections[colId] || {}).milestones || {})[mKey]?.checklist?.[itemKey]?.text || '';
+  logActivity(checked ? 'completed' : 'status_change', '<strong>' + currentUserName + '</strong> ' + (checked ? 'completed' : 'unchecked') + ' "' + itemText + '" in <strong>' + mName + '</strong>');
+  if (useLocalMode) { collections = localData.collections || {}; renderDetailMobile(); }
+}
+
+function removeChecklistItem(colId, mKey, itemKey) {
+  dbHelper.ref('collections/' + colId + '/milestones/' + mKey + '/checklist/' + itemKey).set(null);
+  if (useLocalMode) { collections = localData.collections || {}; renderDetailMobile(); }
+}
+
+// ============ GATE FUNCTIONS ============
+function toggleGate(colId, mKey, gated) {
+  dbHelper.ref('collections/' + colId + '/milestones/' + mKey + '/gated').set(gated);
+  if (useLocalMode) { collections = localData.collections || {}; renderDetailMobile(); }
+}
+
+function isGateBlocked(milestone) {
+  if (!milestone.gated) return false;
+  var cl = milestone.checklist || {};
+  var items = Object.values(cl);
+  if (items.length === 0) return false;
+  return items.some(function(i) { return !i.checked; });
+}
+
+// ============ UPDATED DETAIL RENDERING WITH CHECKLISTS + GATES ============
+var _origRenderDetailMobile = renderDetailMobile;
+renderDetailMobile = function() {
+  if (!currentDetailId || !collections[currentDetailId]) return;
+  var col = collections[currentDetailId];
+  var status = getCollectionStatus(col);
+  var progress = getCollectionProgress(col);
+  var milestones = MILESTONE_TEMPLATE.filter(function(t) { return col.milestones && col.milestones[t.key] && col.milestones[t.key].status !== 'skipped'; });
+
+  var html = '';
+
+  // User bar
+  if (currentUserName) {
+    html += '<div class="current-user-bar">👤 Logged in as <strong>' + currentUserName + '</strong><button onclick="changeUser()">Switch</button></div>';
+  }
+
+  html += '<button class="detail-back" onclick="navigateTo(\'dashboard\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Back</button>';
+  html += '<div class="detail-header"><div class="detail-title-group"><h2>' + col.name + '</h2>';
+  html += '<div class="detail-meta"><span class="collection-type type-' + col.type + '">' + col.type + '</span>';
+  html += '<span>' + (col.onlineLaunch ? 'Online: ' + formatDate(col.onlineLaunch) : 'Online: N/A') + '</span>';
+  html += '<span>' + (col.retailLaunch ? 'Retail: ' + formatDate(col.retailLaunch) : 'Retail: N/A') + '</span>';
+  html += '<span class="collection-status-badge ' + statusBadgeClass(status) + '">' + statusLabel(status) + '</span>';
+  html += '<span>' + progress + '%</span></div>';
+  html += '<div style="margin-top:10px"><button class="btn btn-secondary btn-sm" onclick="openEditModal(\'' + currentDetailId + '\')">✏️ Edit</button></div>';
+  html += '</div></div>';
+
+  milestones.forEach(function(tmpl) {
+    var m = col.milestones[tmpl.key];
+    var hasNotes = m.notes && Object.keys(m.notes).length > 0;
+    var hasLinks = m.links && Object.keys(m.links).length > 0;
+    var nc = hasNotes ? Object.keys(m.notes).length : 0;
+    var lc = hasLinks ? Object.keys(m.links).length : 0;
+    var checklist = m.checklist || {};
+    var clItems = Object.entries(checklist).sort(function(a,b) { return (a[1].createdAt||0) - (b[1].createdAt||0); });
+    var clTotal = clItems.length;
+    var clDone = clItems.filter(function(e) { return e[1].checked; }).length;
+    var gated = m.gated || false;
+    var blocked = isGateBlocked(m);
+    var lastStamp = m.lastUpdatedBy ? '<div class="stamp">Last updated by <strong>' + m.lastUpdatedBy + '</strong> · ' + (m.lastUpdatedAt ? new Date(m.lastUpdatedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '') + '</div>' : '';
+
+    html += '<div class="milestone-card" style="border-left-color:' + deptColor(m.dept) + '">';
+    html += '<div class="milestone-card-header"><div><div class="milestone-card-name">' + m.name;
+    if (gated) html += ' <span class="gate-badge">🔒 Gated</span>';
+    html += '</div>';
+    html += '<div class="milestone-card-dept" style="color:' + deptColor(m.dept) + '">' + deptName(m.dept) + '</div></div>';
+    html += '<span class="collection-status-badge ' + statusBadgeClass(m.status) + '" style="font-size:10px;">' + statusLabel(m.status) + '</span></div>';
+
+    html += '<div class="milestone-card-body">';
+    html += '<div class="milestone-card-row"><label>Target</label><span>' + formatDateFull(m.targetDate) + '</span></div>';
+    html += '<div class="milestone-card-row"><label>Done</label><input type="date" value="' + (m.actualDate || '') + '" onchange="updateMilestoneField(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'actualDate\',this.value)"></div>';
+    html += '<div class="milestone-card-row"><label>Status</label><select onchange="updateMilestoneField(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'status\',this.value)" style="border-left:3px solid ' + progressColor(m.status) + '">';
+    ['not_started','on_track','at_risk','delayed','complete'].forEach(function(s) {
+      html += '<option value="' + s + '"' + (m.status === s ? ' selected' : '') + '>' + statusLabel(s) + '</option>';
+    });
+    html += '</select></div>';
+    html += lastStamp;
+    html += '</div>';
+
+    // Checklist section
+    html += '<div class="checklist-section">';
+    html += '<div class="checklist-header"><span class="checklist-title">Checklist' + (clTotal ? ' (' + clDone + '/' + clTotal + ')' : '') + '</span>';
+    html += '<label class="gate-toggle"><input type="checkbox" ' + (gated ? 'checked' : '') + ' onchange="toggleGate(\'' + currentDetailId + '\',\'' + tmpl.key + '\',this.checked)"> Require all</label>';
+    html += '</div>';
+
+    clItems.forEach(function(e) {
+      var ck = e[0], ci = e[1];
+      html += '<div class="checklist-item">';
+      html += '<input type="checkbox" ' + (ci.checked ? 'checked' : '') + ' onchange="toggleChecklistItem(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + ck + '\',this.checked)">';
+      html += '<div class="checklist-item-content"><div class="checklist-item-text ' + (ci.checked ? 'checked' : '') + '">' + ci.text + '</div>';
+      if (ci.checked && ci.checkedBy) {
+        html += '<div class="checklist-item-stamp">✅ ' + ci.checkedBy + ' · ' + new Date(ci.checkedAt).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) + '</div>';
+      }
+      html += '</div>';
+      html += '<button class="checklist-remove" onclick="removeChecklistItem(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + ck + '\')" title="Remove">✕</button>';
+      html += '</div>';
+    });
+
+    html += '<div class="checklist-add"><input type="text" id="cl-input-' + tmpl.key + '" placeholder="Add sub-task..." onkeypress="if(event.key===\'Enter\')addChecklistItem(\'' + currentDetailId + '\',\'' + tmpl.key + '\')"><button onclick="addChecklistItem(\'' + currentDetailId + '\',\'' + tmpl.key + '\')">Add</button></div>';
+
+    if (blocked) {
+      html += '<div class="gate-blocked-msg">🔒 Cannot mark complete — ' + (clTotal - clDone) + ' checklist item' + ((clTotal - clDone) > 1 ? 's' : '') + ' remaining</div>';
+    }
+    html += '</div>';
+
+    // Footer actions
+    html += '<div class="milestone-card-footer">';
+    html += '<button class="milestone-action-btn ' + (hasNotes ? 'has-items' : '') + '" onclick="openNotesPanel(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + m.name.replace(/'/g, "\\'") + '\')">💬 Notes' + (nc ? ' (' + nc + ')' : '') + '</button>';
+    html += '<button class="milestone-action-btn ' + (hasLinks ? 'has-items' : '') + '" onclick="openLinksPanel(\'' + currentDetailId + '\',\'' + tmpl.key + '\',\'' + m.name.replace(/'/g, "\\'") + '\')">📎 Files' + (lc ? ' (' + lc + ')' : '') + '</button>';
+    html += '</div></div>';
+  });
+
+  document.getElementById('view-detail').innerHTML = html;
+};
+
+// ============ OVERRIDE updateMilestoneField FOR GATE CHECK + STAMPS ============
+var _prevUpdateMF = updateMilestoneField;
+updateMilestoneField = function(colId, milestoneKey, field, value) {
+  if (!currentUserName) { promptUserName(); return; }
+
+  var m = ((collections[colId] || {}).milestones || {})[milestoneKey];
+
+  // Gate check: block completion if gated and checklist incomplete
+  if (field === 'status' && value === 'complete' && m && isGateBlocked(m)) {
+    alert('This milestone is gated. Complete all checklist items first.');
+    renderDetailMobile(); // Reset the dropdown
+    return;
+  }
+  if (field === 'actualDate' && value && m && isGateBlocked(m)) {
+    alert('This milestone is gated. Complete all checklist items before marking done.');
+    renderDetailMobile();
+    return;
+  }
+
+  // Write the update
+  dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/' + field).set(value);
+
+  // Write accountability stamp
+  dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/lastUpdatedBy').set(currentUserName);
+  dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/lastUpdatedAt').set(Date.now());
+
+  var mName = (m || {}).name || milestoneKey;
+  var cName = (collections[colId] || {}).name || colId;
+
+  if (field === 'status') {
+    logActivity(value === 'complete' ? 'completed' : 'status_change', '<strong>' + currentUserName + '</strong> set <strong>' + mName + '</strong> → ' + statusLabel(value) + ' in ' + cName);
+  }
+  if (field === 'actualDate' && value) {
+    dbHelper.ref('collections/' + colId + '/milestones/' + milestoneKey + '/status').set('complete');
+    logActivity('completed', '<strong>' + currentUserName + '</strong> completed <strong>' + mName + '</strong> in ' + cName);
+  }
+};
+
+// ============ UPDATED SAVE COLLECTION WITH USER STAMP ============
+var _prevSaveCol = saveCollection;
+saveCollection = function() {
+  if (!currentUserName) { promptUserName(); return; }
+  var editId = document.getElementById('editCollectionId').value;
+  var name = document.getElementById('collectionNameInput').value.trim();
+  if (!name) return alert('Please enter a collection name.');
+  var type = document.getElementById('collectionTypeInput').value;
+  var year = parseInt(document.getElementById('collectionYearInput').value);
+  var onlineLaunch = document.getElementById('onlineLaunchInput').value || null;
+  var retailLaunch = document.getElementById('retailLaunchInput').value || null;
+  var milestones = {};
+  MILESTONE_TEMPLATE.forEach(function(tmpl) {
+    var enabled = document.getElementById('toggle_' + tmpl.key).checked;
+    var date = document.getElementById('date_' + tmpl.key).value || null;
+    var existing = editId ? ((collections[editId] || {}).milestones || {})[tmpl.key] : null;
+    milestones[tmpl.key] = {
+      name: tmpl.name, dept: tmpl.dept, targetDate: date,
+      actualDate: existing ? existing.actualDate : null,
+      status: enabled ? (existing ? existing.status : 'not_started') : 'skipped',
+      notes: existing ? existing.notes || {} : {},
+      links: existing ? existing.links || {} : {},
+      checklist: existing ? existing.checklist || {} : {},
+      gated: existing ? existing.gated || false : false,
+      lastUpdatedBy: existing ? existing.lastUpdatedBy : null,
+      lastUpdatedAt: existing ? existing.lastUpdatedAt : null
+    };
+  });
+  var data = { name: name, type: type, year: year, onlineLaunch: onlineLaunch, retailLaunch: retailLaunch, milestones: milestones };
+  if (editId) {
+    dbHelper.ref('collections/' + editId).update(data);
+    logActivity('collection_edited', '<strong>' + currentUserName + '</strong> updated <strong>' + name + '</strong>');
+  } else {
+    var key = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + year;
+    dbHelper.ref('collections/' + key).set(data);
+    logActivity('collection_added', '<strong>' + currentUserName + '</strong> added <strong>' + name + '</strong>');
+  }
+  closeModal();
+};
+
+// ============ UPDATED NOTE WITH USER STAMP ============
+var _prevAddNote = addNote;
+addNote = function() {
+  if (!currentNotesContext) return;
+  if (currentNotesContext.mode === 'links') { addLink(); return; }
+  if (!currentUserName) { promptUserName(); return; }
+  var text = (document.getElementById('noteInput') || {}).value;
+  if (!text || !text.trim()) return;
+  var path = 'collections/' + currentNotesContext.colId + '/milestones/' + currentNotesContext.milestoneKey + '/notes';
+  dbHelper.ref(path).push().set({ text: text.trim(), author: currentUserName, timestamp: Date.now() });
+  document.getElementById('noteInput').value = '';
+  var mName = ((collections[currentNotesContext.colId] || {}).milestones || {})[currentNotesContext.milestoneKey]?.name || '';
+  var cName = (collections[currentNotesContext.colId] || {}).name || '';
+  logActivity('note_added', '<strong>' + currentUserName + '</strong> added note to <strong>' + mName + '</strong> in ' + cName);
+  setTimeout(function() { renderNotes(); }, 300);
+};
+
+// ============ PROMPT USER AFTER AUTH ============
+var _origCheckAuth = checkAuth;
+checkAuth = function() {
+  if (sessionStorage.getItem('nlh_auth') === 'true') {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    initApp();
+    setTimeout(promptUserName, 500);
+  }
+};
+
+var _origAttemptLogin = attemptLogin;
+attemptLogin = function() {
+  if (document.getElementById('authPassword').value === TEAM_PASSWORD) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    sessionStorage.setItem('nlh_auth', 'true');
+    initApp();
+    setTimeout(promptUserName, 500);
+  } else {
+    document.getElementById('authError').style.display = 'block';
+  }
 };
 
 // ============ INIT ============
